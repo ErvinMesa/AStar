@@ -21,9 +21,9 @@ public class Controller {
     @FXML
     Canvas canvas = new Canvas();
 
-    Node start_Node,end_Node;
+    private Node start_Node,end_Node;
 
-    Image img;
+    private Image img;
 
     @FXML
     public void initialize(){
@@ -52,7 +52,7 @@ public class Controller {
             });
         }
         catch (Exception e){
-
+            System.out.println(e);
         }
     }
     public void clearBoard(){
@@ -67,7 +67,7 @@ public class Controller {
         gc.fillOval(start_Node.getX() - 5, start_Node.getY() - 5, 10.0, 10.0);
     }
 
-    public int[] getColor(Image img, int x,int y){
+    private int[] getColor(Image img, int x,int y){
         int a,r,g,b;
         PixelReader pxReader = img.getPixelReader();
         int argbval = pxReader.getArgb(x,y);
@@ -82,7 +82,7 @@ public class Controller {
     PriorityQueue<Node> open;
     GraphicsContext gc;
 
-    public List<Node> findPath(){
+    private List<Node> findPath(){
         gc = canvas.getGraphicsContext2D();
         gc.setFill(Color.YELLOW);
         Node parent = start_Node;
@@ -130,7 +130,7 @@ public class Controller {
         return path;
     }
 
-    public void getSurroundingNodes(Node curr){
+    private void getSurroundingNodes(Node curr){
         int x = curr.x;
         int y = curr.y;
         if(y+1 < area[0].length) {
@@ -146,7 +146,7 @@ public class Controller {
             checkDuplicate(curr, x, y - 1);
         }
     }
-    public void checkDuplicate(Node node,int x, int y){
+    private void checkDuplicate(Node node,int x, int y){
         gc = canvas.getGraphicsContext2D();
         Node adjacentNode = area[x][y];
         //gc.fillRect(adjacentNode.x, adjacentNode.y, 2, 2);
@@ -156,18 +156,16 @@ public class Controller {
                 adjacentNode.setCost(node.cost + 10);
                 open.add(adjacentNode);
             } else {
-                /*boolean changed = adjacentNode.checkBetterPath(currentNode, cost);
+                boolean changed = adjacentNode.checkBetterPath(node, 10);
                 if (changed) {
-                    // Remove and Add the changed node, so that the PriorityQueue can sort again its
-                    // contents with the modified "finalCost" value of the modified node
-                    getOpenList().remove(adjacentNode);
-                    getOpenList().add(adjacentNode);
-                }*/
+                    open.remove(adjacentNode);
+                    open.add(adjacentNode);
+                }
             }
         }
     }
 
-    public Node lowestCost(Set open){
+    public Node lowestCost(Set<Node> open){
         Iterator<Node> openiterator = open.iterator();
         Node min = openiterator.next();
         while(openiterator.hasNext()){
@@ -178,7 +176,7 @@ public class Controller {
         }
         return min;
     }
-    public boolean checkWall(Node n){
+    private boolean checkWall(Node n){
         int[] color = getColor(img,n.getX(),n.getY());
         if(color[1] < 255 &&
                 color[2] < 255 &&
@@ -189,7 +187,7 @@ public class Controller {
         }
         return false;
     }
-    public int getHCost(Node node){
+    private int getHCost(Node node){
         return (Math.abs(end_Node.x-node.x)+Math.abs(end_Node.y-node.y));
     }
     //(Math.abs(start_Node.x-node.x)+Math.abs(start_Node.y-node.y))
@@ -198,7 +196,7 @@ public class Controller {
         int x,y;
         int cost = -1;
 
-        public Node(int x, int y){
+        private Node(int x, int y){
             this.x = x;
             this.y = y;
         }
@@ -207,17 +205,26 @@ public class Controller {
             this.y = y;
             this.cost = cost;
         }
-        public void setCost(int cost){
+        private void setCost(int cost){
             this.cost = cost;
         }
-        public int getX(){
+        private int getX(){
             return x;
         }
-        public int getY(){
+        private int getY(){
             return y;
         }
-        public boolean equals(Node comp){
+        private boolean equals(Node comp){
             return (comp.x == this.x && comp.y == this.y);
+        }
+        public boolean checkBetterPath(Node curr, int cost) {
+            int gCost = curr.cost+ cost;
+            if (gCost < this.cost) {
+                this.parent = curr;
+                setCost(cost);
+                return true;
+            }
+            return false;
         }
     }
 }
